@@ -130,7 +130,7 @@ export default function AnalyticsPage() {
           },
           {
             label: "Rec. Acceptance",
-            value: `${Math.round(aiStats.recommendationAcceptanceRate * 100)}%`,
+            value: `${aiStats.recommendationAcceptanceRate}%`,
             icon: TrendingUp,
             color: "var(--teal-400)",
             trend: 5.2,

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/supabase/server";
+import { z } from "zod";
+
+const patchSchema = z.object({
+  action: z.enum(["select"]).optional(),
+  status: z.enum(["SUBMITTED", "AI_PROCESSING", "AI_SCORED", "UNDER_REVIEW", "SELECTED", "REJECTED", "WITHDRAWN"]).optional(),
+  notes: z.string().optional(),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -46,9 +53,10 @@ export async function PATCH(
       return NextResponse.json({ data: updatedBid, error: null });
     }
 
+    const validated = patchSchema.parse(body);
     const bid = await prisma.bid.update({
       where: { id },
-      data: body,
+      data: validated,
     });
 
     return NextResponse.json({ data: bid, error: null });

@@ -172,8 +172,8 @@ export async function POST(
         data: { status: "BID_SUBMITTED", respondedAt: new Date() },
       });
 
-      // Send emails (non-blocking)
-      Promise.all([
+      // Send emails (fire and forget, but await so Vercel doesn't kill before sending)
+      await Promise.all([
         sendBidSubmittedConfirmation({
           contractorEmail: validated.contractorEmail,
           contractorName: validated.contractorName,
