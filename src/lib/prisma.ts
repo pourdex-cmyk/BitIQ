@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { getEnv } from "@/lib/env";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -8,11 +9,11 @@ const globalForPrisma = globalThis as unknown as {
 
 function getConnectionString() {
   const candidates = [
-    process.env.DATABASE_URL,
-    process.env.POSTGRES_PRISMA_URL,
-    process.env.POSTGRES_URL,
-    process.env.DIRECT_URL,
-    process.env.POSTGRES_URL_NON_POOLING,
+    getEnv("DATABASE_URL"),
+    getEnv("POSTGRES_PRISMA_URL"),
+    getEnv("POSTGRES_URL"),
+    getEnv("DIRECT_URL"),
+    getEnv("POSTGRES_URL_NON_POOLING"),
   ];
 
   const connectionString = candidates.find(

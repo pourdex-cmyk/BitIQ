@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { getRequiredEnv } from "@/lib/env";
 
 export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
+  apiKey: getRequiredEnv("ANTHROPIC_API_KEY"),
 });
 
 export const AI_MODEL = "claude-sonnet-4-5";

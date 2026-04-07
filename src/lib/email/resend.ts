@@ -1,13 +1,14 @@
 import { Resend } from "resend";
+import { getEnv } from "@/lib/env";
 
 function getResend() {
-  const key = process.env.RESEND_API_KEY;
+  const key = getEnv("RESEND_API_KEY");
   if (!key || key === "your_resend_key") return null;
   return new Resend(key);
 }
 
-const FROM = process.env.RESEND_FROM_EMAIL ?? "BidIQ <bids@bidiq.co>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const FROM = getEnv("RESEND_FROM_EMAIL") ?? "BidIQ <bids@bidiq.co>";
+const APP_URL = getEnv("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000";
 
 export async function sendBidInvitation({
   contractorName,

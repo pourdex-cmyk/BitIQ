@@ -4,7 +4,10 @@ import { defineConfig } from "prisma/config";
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
-const directUrl = (process.env.DIRECT_URL ?? "").replace(/^["']|["']$/g, "");
+const directUrl = (process.env.DIRECT_URL ?? "")
+  .trim()
+  .replace(/^["']|["']$/g, "")
+  .trim();
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
