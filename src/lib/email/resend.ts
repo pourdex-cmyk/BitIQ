@@ -1,6 +1,11 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY!);
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key || key === "your_resend_key") return null;
+  return new Resend(key);
+}
+
 const FROM = process.env.RESEND_FROM_EMAIL ?? "BidIQ <bids@bidiq.co>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -21,6 +26,8 @@ export async function sendBidInvitation({
 }) {
   const bidUrl = `${APP_URL}/bid/${token}`;
 
+  const resend = getResend();
+  if (!resend) return { data: null, error: new Error("Resend not configured") };
   return resend.emails.send({
     from: FROM,
     to: contractorEmail,
@@ -74,6 +81,8 @@ export async function sendBidReceivedNotification({
 }) {
   const projectUrl = `${APP_URL}/projects/${projectId}/bids`;
 
+  const resend = getResend();
+  if (!resend) return { data: null, error: new Error("Resend not configured") };
   return resend.emails.send({
     from: FROM,
     to: pmEmail,
@@ -102,6 +111,8 @@ export async function sendBidSubmittedConfirmation({
   projectName: string;
   totalAmount: number;
 }) {
+  const resend = getResend();
+  if (!resend) return { data: null, error: new Error("Resend not configured") };
   return resend.emails.send({
     from: FROM,
     to: contractorEmail,
