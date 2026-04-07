@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Zap, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
+  const appRoute = "/projects";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [magicLink, setMagicLink] = useState(false);
@@ -16,13 +18,51 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  useEffect(() => {
+    let active = true;
+
+    const syncSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (active && session) {
+        router.replace(appRoute);
+        router.refresh();
+      }
+    };
+
+    void syncSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+      if (event !== "SIGNED_OUT" && session) {
+        router.replace(appRoute);
+        router.refresh();
+      }
+      }
+    );
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [appRoute, router, supabase]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (magicLink) {
-        const { error } = await supabase.auth.signInWithOtp({ email });
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/login`,
+          },
+        });
         if (error) throw error;
         toast.success("Magic link sent! Check your email.");
       } else {
@@ -32,7 +72,7 @@ export default function LoginPage() {
         });
         if (error) throw error;
         if (data.session) {
-          router.push("/");
+          router.replace(appRoute);
           router.refresh();
         }
       }
