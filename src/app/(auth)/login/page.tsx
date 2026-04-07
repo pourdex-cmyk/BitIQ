@@ -240,7 +240,16 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-[var(--surface-border)]">
+            <div className="mt-6 pt-6 border-t border-[var(--surface-border)] space-y-3">
+              <p className="text-center text-sm text-[var(--text-secondary)]">
+                Don&apos;t have an account?{" "}
+                <a
+                  href="/signup"
+                  className="text-[var(--teal-400)] hover:text-[var(--teal-300)] font-medium transition-colors"
+                >
+                  Sign up
+                </a>
+              </p>
               <p className="text-center text-xs text-[var(--text-secondary)]">
                 Are you a contractor?{" "}
                 <span className="text-[var(--teal-400)]">
