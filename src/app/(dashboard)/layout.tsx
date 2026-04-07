@@ -1,14 +1,22 @@
 export const dynamic = "force-dynamic";
 
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { NotificationPanel } from "@/components/layout/NotificationPanel";
+import { getUser } from "@/lib/supabase/server";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--surface-base)]">
       <Sidebar />
