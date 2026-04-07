@@ -1,6 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
 
-const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+const connectionString = (process.env.DIRECT_URL ?? "").replace(/^["']|["']$/g, "");
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter } as never);
 
 async function main() {
   console.log("🌱 Seeding BidIQ database...");
