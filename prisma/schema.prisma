@@ -1,0 +1,346 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  BEANTOWN_ADMIN
+  BEANTOWN_PM
+  BEANTOWN_PRINCIPAL
+  BEANTOWN_FINANCE
+  CONTRACTOR
+}
+
+enum ProjectStatus {
+  DRAFT
+  SOW_GENERATED
+  BIDDING_OPEN
+  BIDDING_CLOSED
+  BID_SELECTED
+  CONTRACTING
+  IN_PROGRESS
+  COMPLETE
+  CANCELLED
+}
+
+enum BidStatus {
+  DRAFT
+  SUBMITTED
+  AI_PROCESSING
+  AI_SCORED
+  UNDER_REVIEW
+  SELECTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InvitationStatus {
+  PENDING
+  VIEWED
+  BID_SUBMITTED
+  DECLINED
+  EXPIRED
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT_FOR_SIGNATURE
+  SIGNED
+  ACTIVE
+  COMPLETE
+  CANCELLED
+}
+
+model User {
+  id         String   @id @default(cuid())
+  supabaseId String   @unique
+  email      String   @unique
+  name       String
+  role       UserRole
+  avatarUrl  String?
+  phone      String?
+  company    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ownedProjects     Project[]          @relation("ProjectOwner")
+  submittedBids     Bid[]
+  contractorProfile ContractorProfile?
+  notifications     Notification[]
+}
+
+model ContractorProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id])
+  companyName      String
+  licenseNumber    String
+  licenseState     String
+  licenseExpiry    DateTime?
+  insuranceCurrent Boolean   @default(false)
+  insuranceExpiry  DateTime?
+  yearsInBusiness  Int
+  primaryTrade     String
+  specialties      String[]
+  serviceArea      String[]
+  overallScore     Float?
+  bidAccuracyScore Float?
+  onTimeScore      Float?
+  qualityScore     Float?
+  changeOrderScore Float?
+
+  totalProjectsWithBeantown Int   @default(0)
+  totalProjectValue         Float @default(0)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  bids Bid[]
+}
+
+model Property {
+  id            String    @id @default(cuid())
+  address       String
+  city          String
+  state         String
+  zip           String
+  propertyType  String
+  squareFootage Float?
+  yearBuilt     Int?
+  purchasePrice Float?
+  purchaseDate  DateTime?
+  notes         String?
+
+  photos   PropertyPhoto[]
+  projects Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PropertyPhoto {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  url         String
+  storagePath String
+  caption     String?
+  aiTags      String[]
+  aiAnalysis  String?
+  uploadedAt  DateTime @default(now())
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  propertyId      String
+  property        Property      @relation(fields: [propertyId], references: [id])
+  ownerId         String
+  owner           User          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  name            String
+  description     String?
+  status          ProjectStatus @default(DRAFT)
+  bidDeadline     DateTime?
+  bidOpenedAt     DateTime?
+  bidClosedAt     DateTime?
+  budgetTarget    Float?
+  aiBenchmarkMid  Float?
+  aiBenchmarkLow  Float?
+  aiBenchmarkHigh Float?
+  selectedBidId   String?
+  selectedAt      DateTime?
+  yardiProjectId  String?
+  yardiSyncedAt   DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  scopeOfWork ScopeOfWork?
+  bids        Bid[]
+  invitations BidInvitation[]
+  contract    Contract?
+}
+
+model ScopeOfWork {
+  id              String      @id @default(cuid())
+  projectId       String      @unique
+  project         Project     @relation(fields: [projectId], references: [id])
+  aiGenerated     Boolean     @default(true)
+  summary         String
+  conditionReport String?
+  lineItems       SowLineItem[]
+  generatedAt     DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model SowLineItem {
+  id            String      @id @default(cuid())
+  sowId         String
+  sow           ScopeOfWork @relation(fields: [sowId], references: [id])
+  sortOrder     Int
+  category      String
+  description   String
+  unit          String?
+  estimatedQty  Float?
+  notes         String?
+  required      Boolean     @default(true)
+  benchmarkLow  Float?
+  benchmarkMid  Float?
+  benchmarkHigh Float?
+
+  bidLineItems BidLineItem[]
+}
+
+model BidInvitation {
+  id              String           @id @default(cuid())
+  projectId       String
+  project         Project          @relation(fields: [projectId], references: [id])
+  contractorEmail String
+  contractorName  String
+  token           String           @unique @default(cuid())
+  status          InvitationStatus @default(PENDING)
+  sentAt          DateTime         @default(now())
+  viewedAt        DateTime?
+  respondedAt     DateTime?
+  expiresAt       DateTime
+
+  bid Bid?
+}
+
+model Bid {
+  id                  String             @id @default(cuid())
+  projectId           String
+  project             Project            @relation(fields: [projectId], references: [id])
+  contractorId        String?
+  contractor          User?              @relation(fields: [contractorId], references: [id])
+  contractorProfileId String?
+  contractorProfile   ContractorProfile? @relation(fields: [contractorProfileId], references: [id])
+  invitationId        String?            @unique
+  invitation          BidInvitation?     @relation(fields: [invitationId], references: [id])
+  status              BidStatus          @default(DRAFT)
+
+  contractorCompany String
+  contractorName    String
+  contractorEmail   String
+  contractorPhone   String?
+  licenseNumber     String?
+  yearsExperience   Int?
+  primaryTrade      String?
+  insuranceOnFile   Boolean @default(false)
+
+  totalLaborCost    Float?
+  totalMaterialCost Float?
+  totalBidAmount    Float?
+
+  proposedStartDate DateTime?
+  estimatedDays     Int?
+  paymentTerms      String?
+  bidValidUntil     DateTime?
+  exclusions        String?
+  allowances        String?
+  assumptions       String?
+  notes             String?
+
+  aiOverallScore   Float?
+  aiBidVsBenchmark Float?
+  aiHistoricalScore Float?
+  aiRiskScore      Float?
+  aiRecommended    Boolean   @default(false)
+  aiRationale      String?
+  aiScoredAt       DateTime?
+
+  lineItems   BidLineItem[]
+  submittedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BidLineItem {
+  id            String      @id @default(cuid())
+  bidId         String
+  bid           Bid         @relation(fields: [bidId], references: [id])
+  sowLineItemId String?
+  sowLineItem   SowLineItem? @relation(fields: [sowLineItemId], references: [id])
+  sortOrder     Int
+  category      String
+  description   String
+  unit          String?
+  quantity      Float?
+  laborCost     Float?
+  materialCost  Float?
+  totalCost     Float?
+  estimatedDays Int?
+  subcontracted Boolean     @default(false)
+  subcontractorName String?
+  notes         String?
+  benchmarkMid  Float?
+  deviationPct  Float?
+  aiFlag        String?
+  aiFlagReason  String?
+}
+
+model Contract {
+  id                String         @id @default(cuid())
+  projectId         String         @unique
+  project           Project        @relation(fields: [projectId], references: [id])
+  bidId             String
+  status            ContractStatus @default(DRAFT)
+  contractorCompany String
+  contractorName    String
+  totalAmount       Float
+  startDate         DateTime?
+  completionDate    DateTime?
+  paymentTerms      String?
+  aiDrafted         Boolean        @default(false)
+  documentUrl       String?
+  storagePath       String?
+  signedAt          DateTime?
+  yardiSyncedAt     DateTime?
+
+  milestones ContractMilestone[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+}
+
+model ContractMilestone {
+  id          String    @id @default(cuid())
+  contractId  String
+  contract    Contract  @relation(fields: [contractId], references: [id])
+  sortOrder   Int
+  name        String
+  description String?
+  amount      Float
+  dueDate     DateTime?
+  completedAt DateTime?
+}
+
+model BenchmarkDataPoint {
+  id            String   @id @default(cuid())
+  category      String
+  description   String
+  unit          String?
+  region        String
+  laborLow      Float
+  laborMid      Float
+  laborHigh     Float
+  materialLow   Float
+  materialMid   Float
+  materialHigh  Float
+  source        String
+  projectId     String?
+  effectiveDate DateTime
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+}
