@@ -300,7 +300,7 @@ export default async function DashboardPage() {
                         <td className="px-5 py-3 text-right">
                           <span className="text-xs text-[var(--text-secondary)]">
                             {bid.submittedAt
-                              ? formatDistanceToNow(bid.submittedAt, { addSuffix: true })
+                              ? formatDistanceToNow(new Date(bid.submittedAt), { addSuffix: true })
                               : "—"}
                           </span>
                         </td>

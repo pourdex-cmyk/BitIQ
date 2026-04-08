@@ -68,7 +68,7 @@ export function ActiveProjectsWidget({ projects }: ActiveProjectsWidgetProps) {
               (b) => b.status !== "DRAFT" && b.status !== "WITHDRAWN"
             ).length;
             const deadlineDist = project.bidDeadline
-              ? formatDistanceToNow(project.bidDeadline, { addSuffix: true })
+              ? formatDistanceToNow(new Date(project.bidDeadline), { addSuffix: true })
               : null;
 
             return (

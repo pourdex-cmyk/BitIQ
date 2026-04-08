@@ -95,7 +95,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                 <span className="text-xs text-[var(--text-secondary)]">
-                  {formatDistanceToNow(project.bidDeadline, { addSuffix: true })}
+                  {formatDistanceToNow(new Date(project.bidDeadline!), { addSuffix: true })}
                 </span>
               </div>
             )}
