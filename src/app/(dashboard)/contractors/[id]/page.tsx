@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ContractorProfileClient } from "@/components/contractors/ContractorProfileClient";
@@ -34,11 +36,12 @@ export default async function ContractorDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const contractor = await getContractor(id);
+  const raw = await getContractor(id);
 
-  if (!contractor) {
+  if (!raw) {
     notFound();
   }
 
-  return <ContractorProfileClient contractor={contractor as unknown as ContractorWithProfile} />;
+  const contractor = JSON.parse(JSON.stringify(raw)) as ContractorWithProfile;
+  return <ContractorProfileClient contractor={contractor} />;
 }

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { ContractorsClient } from "@/components/contractors/ContractorsClient";
 import type { ContractorWithProfile } from "@/types";

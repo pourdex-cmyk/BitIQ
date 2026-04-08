@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ContractPage } from "@/components/compare/ContractPage";
@@ -32,11 +34,12 @@ export default async function ContractPageRoute({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getProject(id);
+  const raw = await getProject(id);
 
-  if (!project) {
+  if (!raw) {
     notFound();
   }
 
+  const project = JSON.parse(JSON.stringify(raw)) as ProjectWithRelations;
   return <ContractPage project={project} />;
 }

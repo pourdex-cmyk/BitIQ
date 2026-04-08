@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Plus, Search } from "lucide-react";
