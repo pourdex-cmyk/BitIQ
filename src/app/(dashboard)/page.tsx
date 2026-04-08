@@ -115,10 +115,12 @@ const bidStatusColors: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const data = await getDashboardData().catch((err) => {
+  const rawData = await getDashboardData().catch((err) => {
     console.error("Dashboard data error:", err?.message ?? err);
     throw err;
   });
+  // Serialize through JSON to produce plain objects safe to pass to client components
+  const data = JSON.parse(JSON.stringify(rawData)) as typeof rawData;
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">

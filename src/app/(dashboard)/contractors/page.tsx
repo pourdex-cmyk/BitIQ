@@ -38,7 +38,7 @@ export default async function ContractorsPage({
   searchParams: Promise<{ search?: string; view?: string; tab?: string }>;
 }) {
   const { search, view, tab } = await searchParams;
-  const contractors = await getContractors(search);
+  const contractors = JSON.parse(JSON.stringify(await getContractors(search))) as ContractorWithProfile[];
 
   return (
     <ContractorsClient

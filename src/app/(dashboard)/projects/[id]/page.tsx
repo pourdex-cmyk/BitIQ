@@ -31,11 +31,12 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getProject(id);
+  const raw = await getProject(id);
 
-  if (!project) {
+  if (!raw) {
     notFound();
   }
 
+  const project = JSON.parse(JSON.stringify(raw)) as ProjectWithRelations;
   return <ProjectDetailClient project={project} />;
 }

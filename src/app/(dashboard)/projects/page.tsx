@@ -50,7 +50,7 @@ export default async function ProjectsPage({
   searchParams: Promise<{ status?: string; search?: string }>;
 }) {
   const { status, search } = await searchParams;
-  const projects = await getProjects(status, search);
+  const projects = JSON.parse(JSON.stringify(await getProjects(status, search))) as ProjectWithRelations[];
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
