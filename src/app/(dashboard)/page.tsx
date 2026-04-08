@@ -115,7 +115,10 @@ const bidStatusColors: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const data = await getDashboardData().catch((err) => {
+    console.error("Dashboard data error:", err?.message ?? err);
+    throw err;
+  });
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
