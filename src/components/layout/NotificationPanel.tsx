@@ -12,7 +12,7 @@ const mockNotifications = [
     type: "bid_received",
     title: "New Bid Received",
     message: "Summit General Contracting submitted a bid for 14 Maple Avenue",
-    link: "/projects/1/bids",
+    link: "/projects",
     read: false,
     createdAt: new Date(Date.now() - 12 * 60 * 1000),
   },

@@ -1,20 +1,21 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/auth-helpers-nextjs";
-import { getRequiredEnv } from "@/lib/env";
+import { createBrowserClient } from "@supabase/ssr";
 
 let _client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function createClient() {
   if (typeof window === "undefined") {
-    // During SSR/build, return a proxy that won't be called
+    // SSR/build-time mock — never called in real requests
     return {
       auth: {
         signInWithPassword: async () => ({ data: null, error: null }),
         signInWithOtp: async () => ({ data: null, error: null }),
         signUp: async () => ({ data: null, error: null }),
+        getSession: async () => ({ data: { session: null }, error: null }),
         getUser: async () => ({ data: { user: null }, error: null }),
         signOut: async () => ({ error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
       },
       storage: {
         from: () => ({
@@ -22,16 +23,14 @@ export function createClient() {
           getPublicUrl: () => ({ data: { publicUrl: "" } }),
         }),
       },
-      from: () => ({
-        insert: async () => ({ data: null, error: null }),
-      }),
+      from: () => ({ insert: async () => ({ data: null, error: null }) }),
     } as unknown as ReturnType<typeof createBrowserClient>;
   }
 
   if (!_client) {
     _client = createBrowserClient(
-      getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-      getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
   }
   return _client;

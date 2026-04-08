@@ -5,6 +5,7 @@ import { Bell, Search, Plus, ChevronDown } from "lucide-react";
 import { useAppStore } from "@/store/appStore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,13 @@ export function TopBar({ title }: TopBarProps) {
   const { toggleNotificationPanel } = useAppStore();
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +105,10 @@ export function TopBar({ title }: TopBarProps) {
             Profile Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-[var(--surface-border)]" />
-          <DropdownMenuItem className="text-red-400 hover:text-red-300">
+          <DropdownMenuItem
+            className="text-red-400 hover:text-red-300 cursor-pointer"
+            onClick={handleSignOut}
+          >
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
