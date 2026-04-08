@@ -4,20 +4,48 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const results: Record<string, unknown> = {};
+
   try {
-    const count = await prisma.project.count();
-    const bid = await prisma.bid.findFirst({
+    results.projectCount = await prisma.project.count();
+  } catch(e) { results.projectCountError = (e as Error).message; }
+
+  try {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    results.bidsThisMonth = await prisma.bid.count({
+      where: { submittedAt: { gte: startOfMonth }, status: { not: "DRAFT" } },
+    });
+  } catch(e) { results.bidsThisMonthError = (e as Error).message; }
+
+  try {
+    results.recentBids = await prisma.bid.findMany({
+      where: { status: { not: "DRAFT" } },
+      orderBy: { submittedAt: "desc" },
+      take: 3,
       include: {
         project: { include: { property: true } },
         contractorProfile: true,
       },
     });
-    return NextResponse.json({ ok: true, projects: count, sampleBid: bid?.id ?? null });
-  } catch (error) {
-    return NextResponse.json({
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack?.split("\n").slice(0, 5) : null,
-    }, { status: 500 });
-  }
+  } catch(e) { results.recentBidsError = (e as Error).message; }
+
+  try {
+    results.projects = await prisma.project.findMany({
+      take: 2,
+      include: {
+        property: { include: { photos: true } },
+        owner: true,
+        scopeOfWork: { include: { lineItems: true } },
+        bids: {
+          include: { lineItems: true, contractor: true, contractorProfile: true, invitation: true },
+        },
+        invitations: true,
+        contract: true,
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+  } catch(e) { results.projectsError = (e as Error).message; }
+
+  return NextResponse.json(results);
 }
