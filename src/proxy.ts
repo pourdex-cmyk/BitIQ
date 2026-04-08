@@ -6,7 +6,7 @@ const PUBLIC_PATHS = ["/login", "/signup", "/bid"];
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths and API routes
+  // Allow public paths, API routes, and static assets
   if (
     PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/api/") ||
@@ -39,11 +39,13 @@ export async function proxy(request: NextRequest) {
     }
   );
 
+  // Use getSession() in proxy — reads cookie locally, no network call.
+  // Server components call getUser() for real security validation.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);
