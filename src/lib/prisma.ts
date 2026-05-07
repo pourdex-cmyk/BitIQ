@@ -8,12 +8,16 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function getConnectionString() {
+  // Prefer direct connection (port 5432) over PgBouncer session mode (port 6543).
+  // Supabase session-mode PgBouncer caps clients at 15; serverless functions each
+  // hold their own pool and easily exhaust that limit (EMAXCONNSESSION).
+  // Direct connections bypass PgBouncer and are limited only by Postgres max_connections.
   const candidates = [
+    getEnv("DIRECT_URL"),
+    getEnv("POSTGRES_URL_NON_POOLING"),
     getEnv("DATABASE_URL"),
     getEnv("POSTGRES_PRISMA_URL"),
     getEnv("POSTGRES_URL"),
-    getEnv("DIRECT_URL"),
-    getEnv("POSTGRES_URL_NON_POOLING"),
   ];
 
   const connectionString = candidates.find(
