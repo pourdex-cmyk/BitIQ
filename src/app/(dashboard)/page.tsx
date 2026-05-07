@@ -117,9 +117,33 @@ const bidStatusColors: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const rawData = await getDashboardData();
+  let rawData: Awaited<ReturnType<typeof getDashboardData>> | null = null;
+  let fetchError: string | null = null;
+  try {
+    rawData = await getDashboardData();
+  } catch (e) {
+    fetchError = String(e);
+  }
+
+  if (fetchError || !rawData) {
+    return (
+      <div style={{ color: "#f87171", fontFamily: "monospace", padding: "24px", whiteSpace: "pre-wrap", fontSize: "13px" }}>
+        <b>DATA FETCH ERROR:</b>{"\n"}{fetchError ?? "rawData was null"}
+      </div>
+    );
+  }
+
   // Serialize through JSON to produce plain objects safe to pass to client components
-  const data = JSON.parse(JSON.stringify(rawData)) as typeof rawData;
+  let data: typeof rawData;
+  try {
+    data = JSON.parse(JSON.stringify(rawData)) as typeof rawData;
+  } catch (e) {
+    return (
+      <div style={{ color: "#f87171", fontFamily: "monospace", padding: "24px", whiteSpace: "pre-wrap", fontSize: "13px" }}>
+        <b>SERIALIZATION ERROR:</b>{"\n"}{String(e)}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
