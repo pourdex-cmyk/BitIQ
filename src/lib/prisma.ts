@@ -30,7 +30,9 @@ function getConnectionString() {
 }
 
 function getPoolConfig(connectionString: string): PoolConfig {
-  const poolConfig: PoolConfig = { connectionString };
+  // Serverless: keep pool tiny — each function instance holds its own connections
+  // and Supabase session-mode PgBouncer caps total clients at 15.
+  const poolConfig: PoolConfig = { connectionString, max: 1 };
 
   try {
     const connectionUrl = new URL(connectionString);
