@@ -1,17 +1,22 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { getRequiredEnv } from "@/lib/env";
-
-export const anthropic = new Anthropic({
-  apiKey: getRequiredEnv("ANTHROPIC_API_KEY"),
-});
+import { getEnv } from "@/lib/env";
 
 export const AI_MODEL = "claude-sonnet-4-5";
+
+export function getAnthropic(): Anthropic {
+  const key = getEnv("ANTHROPIC_API_KEY");
+  if (!key || key === "your_anthropic_key") {
+    throw new Error("ANTHROPIC_API_KEY is not configured. Add it to your Vercel environment variables.");
+  }
+  return new Anthropic({ apiKey: key });
+}
 
 export async function streamText(
   systemPrompt: string,
   userMessage: string,
   onChunk: (text: string) => void
 ): Promise<string> {
+  const anthropic = getAnthropic();
   let fullText = "";
   const stream = await anthropic.messages.stream({
     model: AI_MODEL,
@@ -37,6 +42,7 @@ export async function generateJson<T>(
   systemPrompt: string,
   userMessage: string
 ): Promise<T> {
+  const anthropic = getAnthropic();
   const response = await anthropic.messages.create({
     model: AI_MODEL,
     max_tokens: 4096,
@@ -49,7 +55,6 @@ export async function generateJson<T>(
     throw new Error("Unexpected response type from Claude");
   }
 
-  // Extract JSON from response (may be wrapped in markdown code blocks)
   const jsonMatch = content.text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
     content.text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { anthropic, AI_MODEL } from "@/lib/ai/claude";
+import { getAnthropic, AI_MODEL } from "@/lib/ai/claude";
 import { GENERATE_SOW_SYSTEM, buildGenerateSowPrompt } from "@/lib/ai/prompts/generateSow";
 import { generateSowSchema } from "@/lib/validations";
 import { getUser } from "@/lib/supabase/server";
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Stream the response
-    const stream = await anthropic.messages.stream({
+    const stream = await getAnthropic().messages.stream({
       model: AI_MODEL,
       max_tokens: 4096,
       system: GENERATE_SOW_SYSTEM,

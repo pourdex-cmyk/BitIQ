@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { anthropic, AI_MODEL } from "@/lib/ai/claude";
+import { getAnthropic, AI_MODEL } from "@/lib/ai/claude";
 import { ANALYZE_PHOTOS_SYSTEM } from "@/lib/ai/prompts/analyzePhotos";
 import { analyzePhotosSchema } from "@/lib/validations";
 import { getUser } from "@/lib/supabase/server";
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       source: { type: "url", url },
     }));
 
-    const response = await anthropic.messages.create({
+    const response = await getAnthropic().messages.create({
       model: AI_MODEL,
       max_tokens: 4096,
       system: ANALYZE_PHOTOS_SYSTEM,

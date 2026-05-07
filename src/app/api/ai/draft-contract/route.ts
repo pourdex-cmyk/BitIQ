@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { anthropic, AI_MODEL } from "@/lib/ai/claude";
+import { getAnthropic, AI_MODEL } from "@/lib/ai/claude";
 import { DRAFT_CONTRACT_SYSTEM, buildDraftContractPrompt } from "@/lib/ai/prompts/draftContract";
 import { draftContractSchema } from "@/lib/validations";
 import { getUser } from "@/lib/supabase/server";
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       paymentTerms: bid.paymentTerms ?? undefined,
     });
 
-    const response = await anthropic.messages.create({
+    const response = await getAnthropic().messages.create({
       model: AI_MODEL,
       max_tokens: 6000,
       system: DRAFT_CONTRACT_SYSTEM,
