@@ -259,7 +259,7 @@ export default async function DashboardPage() {
                             href={`/projects/${bid.projectId}`}
                             className="text-sm text-[var(--text-secondary)] hover:text-[var(--teal-400)] transition-colors truncate max-w-[160px] block"
                           >
-                            {bid.project.property.address}
+                            {bid.project?.property?.address ?? "—"}
                           </Link>
                         </td>
                         <td className="px-5 py-3 text-right">

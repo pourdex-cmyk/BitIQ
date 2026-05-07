@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUser } from "@/lib/supabase/server";
+import type { ProjectStatus } from "@prisma/client";
 
 export async function GET(
   _request: NextRequest,
@@ -57,9 +58,42 @@ export async function PATCH(
 
     const body = await request.json();
 
+    // Build a safe update payload — only allow known updatable fields
+    type UpdateData = {
+      status?: ProjectStatus;
+      bidDeadline?: string | null;
+      bidOpenedAt?: string | null;
+      bidClosedAt?: string | null;
+      selectedBidId?: string | null;
+      selectedAt?: string | null;
+      name?: string;
+      description?: string | null;
+      budgetTarget?: number | null;
+    };
+
+    const updateData: UpdateData = {};
+
+    // Handle named actions
+    if (body.action === "close_bidding") {
+      updateData.status = "BIDDING_CLOSED" as ProjectStatus;
+      updateData.bidClosedAt = new Date().toISOString();
+    } else if (body.action === "open_bidding") {
+      updateData.status = "BIDDING_OPEN" as ProjectStatus;
+      updateData.bidOpenedAt = new Date().toISOString();
+    } else {
+      // Direct field updates — only allow safe fields
+      const allowed: (keyof UpdateData)[] = [
+        "status", "bidDeadline", "bidOpenedAt", "bidClosedAt",
+        "selectedBidId", "selectedAt", "name", "description", "budgetTarget",
+      ];
+      for (const key of allowed) {
+        if (key in body) (updateData as Record<string, unknown>)[key] = body[key];
+      }
+    }
+
     const project = await prisma.project.update({
       where: { id },
-      data: body,
+      data: updateData,
       include: {
         property: { include: { photos: true } },
         owner: true,

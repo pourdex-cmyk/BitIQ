@@ -363,18 +363,18 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
         </Link>
         <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />
         <span className="text-sm text-[var(--text-primary)] font-medium truncate">
-          {project.property.address}
+          {project.property?.address ?? "Project"}
         </span>
       </div>
 
       {/* Hero header */}
       <div className="card-surface overflow-hidden">
         <div className="h-48 relative">
-          {project.property.photos[0] ? (
+          {project.property?.photos?.[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={project.property.photos[0].url}
-              alt={project.property.address}
+              src={project.property?.photos?.[0]?.url ?? ""}
+              alt={project.property?.address ?? "Property"}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -388,10 +388,10 @@ export function ProjectDetailClient({ project }: ProjectDetailClientProps) {
               className="text-2xl font-bold text-[var(--text-primary)]"
               style={{ fontFamily: "var(--font-dm-serif)" }}
             >
-              {project.property.address}
+              {project.property?.address ?? ""}
             </h1>
             <p className="text-sm text-[var(--text-secondary)]">
-              {project.property.city}, {project.property.state} {project.property.zip} · {project.name}
+              {project.property?.city}, {project.property?.state} {project.property?.zip} · {project.name}
             </p>
           </div>
         </div>
@@ -960,7 +960,7 @@ function BidsTab({
                           : "bg-[var(--navy-800)] text-[var(--text-secondary)]"
                       )}
                     >
-                      {(bid.contractorCompany ?? bid.contractorName)[0].toUpperCase()}
+                      {((bid.contractorCompany || bid.contractorName || "?")[0] ?? "?").toUpperCase()}
                     </div>
                     <div>
                       <div className="font-medium text-[var(--text-primary)]">
