@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import type { ProjectWithRelations } from "@/types";
+import { DiagnosticBoundary } from "@/components/shared/DiagnosticBoundary";
 
 async function getDashboardData() {
   const now = new Date();
@@ -117,14 +118,32 @@ const bidStatusColors: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const rawData = await getDashboardData().catch((err) => {
-    console.error("Dashboard data error:", err?.message ?? err);
-    throw err;
-  });
+  let rawData: Awaited<ReturnType<typeof getDashboardData>> | null = null;
+  let pageError: string | null = null;
+  try {
+    rawData = await getDashboardData();
+  } catch (err) {
+    const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
+    console.error("DashboardPage render error:", msg);
+    pageError = msg;
+  }
+
+  if (pageError || !rawData) {
+    return (
+      <div className="p-6">
+        <h2 className="text-lg font-bold text-red-400 mb-2">Dashboard Error (debug)</h2>
+        <pre className="text-xs text-[var(--text-secondary)] bg-[var(--navy-800)] p-4 rounded-lg overflow-auto whitespace-pre-wrap max-w-2xl">
+          {pageError ?? "Unknown error — rawData was null"}
+        </pre>
+      </div>
+    );
+  }
+
   // Serialize through JSON to produce plain objects safe to pass to client components
   const data = JSON.parse(JSON.stringify(rawData)) as typeof rawData;
 
   return (
+    <DiagnosticBoundary label="Dashboard">
     <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex items-end justify-between">
@@ -319,5 +338,6 @@ export default async function DashboardPage() {
         <AIInsightsWidget />
       </div>
     </div>
+    </DiagnosticBoundary>
   );
 }

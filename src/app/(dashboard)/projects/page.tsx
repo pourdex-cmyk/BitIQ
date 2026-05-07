@@ -5,6 +5,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import type { ProjectWithRelations, ProjectStatus } from "@/types";
+import { DiagnosticBoundary } from "@/components/shared/DiagnosticBoundary";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "All Projects" },
@@ -51,10 +52,33 @@ export default async function ProjectsPage({
 }: {
   searchParams: Promise<{ status?: string; search?: string }>;
 }) {
-  const { status, search } = await searchParams;
-  const projects = JSON.parse(JSON.stringify(await getProjects(status, search))) as ProjectWithRelations[];
+  let status: string | undefined;
+  let search: string | undefined;
+  let projects: ProjectWithRelations[] = [];
+  let pageError: string | null = null;
+
+  try {
+    ({ status, search } = await searchParams);
+    projects = JSON.parse(JSON.stringify(await getProjects(status, search))) as ProjectWithRelations[];
+  } catch (err) {
+    const msg = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
+    console.error("ProjectsPage render error:", msg);
+    pageError = msg;
+  }
+
+  if (pageError) {
+    return (
+      <div className="p-6">
+        <h2 className="text-lg font-bold text-red-400 mb-2">Projects Error (debug)</h2>
+        <pre className="text-xs text-[var(--text-secondary)] bg-[var(--navy-800)] p-4 rounded-lg overflow-auto whitespace-pre-wrap max-w-2xl">
+          {pageError}
+        </pre>
+      </div>
+    );
+  }
 
   return (
+    <DiagnosticBoundary label="Projects">
     <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -140,5 +164,6 @@ export default async function ProjectsPage({
         </div>
       )}
     </div>
+    </DiagnosticBoundary>
   );
 }
